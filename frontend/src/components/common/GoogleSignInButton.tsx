@@ -45,6 +45,10 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
 }) => {
   const buttonRef = useRef<HTMLDivElement>(null);
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const successRef = useRef(onSuccess);
+  successRef.current = onSuccess;
+  const errorRef = useRef(onError);
+  errorRef.current = onError;
 
   useEffect(() => {
     if (!clientId) {
@@ -62,9 +66,9 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         client_id: clientId,
         callback: (res) => {
           if (res.credential) {
-            onSuccess(res.credential);
-          } else if (onError) {
-            onError(new Error('No credential returned from Google.'));
+            successRef.current(res.credential);
+          } else if (errorRef.current) {
+            errorRef.current(new Error('No credential returned from Google.'));
           }
         },
       });
@@ -92,7 +96,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     } else if (window.google?.accounts?.id) {
       initializeGoogle();
     }
-  }, [clientId, onSuccess, onError, text]);
+  }, [clientId, text]);
 
   // Fallback UI if client ID is not yet configured or script is loading
   return (

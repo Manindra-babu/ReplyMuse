@@ -10,7 +10,9 @@ export class ApiError extends Error {
   }
 }
 
-const API_BASE = '/api';
+const rawBase = import.meta.env.VITE_API_URL || '/api';
+const cleanBase = rawBase.replace(/\/+$/, '');
+const API_BASE = cleanBase.endsWith('/api') ? cleanBase : `${cleanBase}/api`;
 
 export async function request<T>(
   endpoint: string,
