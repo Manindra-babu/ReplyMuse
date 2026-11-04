@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" fill="none">
+  <defs>
+    <linearGradient id="fav-emerald" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#248A68" />
+      <stop offset="100%" stop-color="#14563E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Clean Squircle -->
+  <rect width="32" height="32" rx="8.5" fill="url(#fav-emerald)" />
+  <rect x="0.75" y="0.75" width="30.5" height="30.5" rx="7.75" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="1" />
+
+  <!-- Bold, Readable Nib Mark at Small Sizes -->
+  <g transform="translate(15.5, 17) rotate(-38) translate(-16, -16)">
+    <!-- Nib Body -->
+    <path
+      d="M16 5.5 L19.8 12.5 C21.2 15 22 17 22 19 C22 22.3 19.3 25 16 25 C12.7 25 10 22.3 10 19 C10 17 10.8 15 12.2 12.5 Z"
+      fill="#FFFFFF"
+    />
+    <!-- Ink Breather Hole -->
+    <circle cx="16" cy="16.5" r="1.8" fill="#EE6A4B" />
+    <!-- Center Slit -->
+    <line x1="16" y1="5.5" x2="16" y2="14.7" stroke="#14563E" stroke-width="1" stroke-linecap="round" />
+  </g>
+
+  <!-- The Muse Sparkle -->
+  <path
+    d="M23.5 6 C23.5 7.6 22.3 9 20.5 9 C22.3 9 23.5 10.4 23.5 12 C23.5 10.4 24.7 9 26.5 9 C24.7 9 23.5 7.6 23.5 6 Z"
+    fill="#EE6A4B"
+  />
+</svg>

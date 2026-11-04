@@ -1,0 +1,5 @@
+Tired of generic, robotic AI responses to customer reviews? 
+
+We built ReplyMuse: paste any Google review, and get an authentic, thoughtful reply in your unique brand voice in seconds. 
+
+Try it free → https://replymuse.vercel.app
