@@ -17,6 +17,8 @@ from app.api.history import router as history_router
 from app.api.usage import router as usage_router
 from app.api.account import router as account_router
 
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO if settings.DEBUG else logging.WARNING,
@@ -55,6 +57,7 @@ if isinstance(origins, str):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -70,6 +73,16 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+
+@app.get("/", tags=["Root"])
+async def root():
+    return {
+        "service": settings.APP_NAME,
+        "status": "online",
+        "documentation": f"{settings.API_V1_STR}/docs",
+        "health": f"{settings.API_V1_STR}/health",
+    }
 
 
 @app.get("/health", tags=["Health"])
@@ -94,13 +107,31 @@ app.include_router(usage_router, prefix=settings.API_V1_STR)
 app.include_router(account_router, prefix=settings.API_V1_STR)
 
 
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    response = JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unhandled exception on {request.method} {request.url.path}: {exc}", exc_info=True)
-    return JSONResponse(
+    response = JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "An internal server error occurred. Please try again later."},
+        content={"detail": "An internal server error occurred. Please check server logs."},
     )
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+    return response
 
 
 if __name__ == "__main__":

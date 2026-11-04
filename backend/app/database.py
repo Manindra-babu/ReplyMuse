@@ -27,13 +27,14 @@ class GUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        elif dialect.name == "postgresql":
-            return str(value)
+        if dialect.name == "postgresql":
+            if isinstance(value, uuid.UUID):
+                return value
+            return uuid.UUID(str(value))
         else:
             if isinstance(value, uuid.UUID):
                 return str(value)
-            else:
-                return str(uuid.UUID(str(value)))
+            return str(uuid.UUID(str(value)))
 
     def process_result_value(self, value, dialect):
         if value is None:
@@ -51,13 +52,37 @@ class Base(DeclarativeBase):
     pass
 
 
+def normalize_database_url(raw_url: str) -> str:
+    if not raw_url:
+        return raw_url
+    url = raw_url.strip()
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://") and not url.startswith("postgresql+asyncpg://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+    if "postgresql+asyncpg://" in url:
+        import re
+        # Remove unsupported parameters for asyncpg like channel_binding
+        url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
+        # asyncpg prefers ssl=require instead of sslmode=require
+        url = re.sub(r"([?&])sslmode=require", r"\1ssl=require", url)
+        # Fix query string if leading &
+        if "?" not in url and "&" in url:
+            url = url.replace("&", "?", 1)
+        url = url.rstrip("?&")
+    return url
+
+
+normalized_db_url = normalize_database_url(settings.DATABASE_URL)
+
 # Connect arguments for SQLite to support WAL mode and avoid lock contention
 connect_args = {}
-if "sqlite" in settings.DATABASE_URL:
+if "sqlite" in normalized_db_url:
     connect_args = {"check_same_thread": False}
 
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    normalized_db_url,
     echo=settings.DEBUG and False,
     future=True,
     connect_args=connect_args,

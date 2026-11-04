@@ -4,7 +4,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Union
 import jwt
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, InvalidHashError
+try:
+    from argon2.exceptions import VerifyMismatchError, InvalidHashError
+except ImportError:
+    from argon2.exceptions import VerifyMismatchError
+    try:
+        from argon2.exceptions import InvalidHash as InvalidHashError
+    except ImportError:
+        InvalidHashError = ValueError
 from app.config import settings
 
 # Direct Argon2id hasher (Python 3.13+ compatible, robust and secure)
