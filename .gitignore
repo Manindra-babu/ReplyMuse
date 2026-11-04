@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.env.local
+backend/.env
+frontend/.env
+frontend/.env.local
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+.venv/
+venv/
+ENV/
+env/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+.cache/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Antigravity artifacts
+.gemini/

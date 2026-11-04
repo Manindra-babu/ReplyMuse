@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /composer
+Disallow: /history
+Disallow: /style
+Disallow: /business
+Disallow: /settings
+Disallow: /onboarding
+
+Sitemap: https://replymuse.com/sitemap.xml

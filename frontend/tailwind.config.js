@@ -1,0 +1,93 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        cream: "#F7F3E8",
+        surface: "#FFFFFF",
+        primary: {
+          DEFAULT: "#1F7A5C",
+          hover: "#18634B",
+          dark: "#124F3A",
+          tint: "#DCEBE3",
+        },
+        coral: {
+          DEFAULT: "#EE6A4B",
+          hover: "#D95A3D",
+          tint: "#FDF1EE",
+        },
+        amber: {
+          DEFAULT: "#F5A623",
+          tint: "#FEF7EE",
+        },
+        text: {
+          main: "#2B2B2B",
+          muted: "#7A7468",
+        },
+        border: {
+          cream: "#E5DFD3",
+          strong: "#D5CDBD",
+        },
+        // Compatibility aliases for existing components
+        brand: {
+          ivory: "#F7F3E8",
+          white: "#FFFFFF",
+          ink: "#2B2B2B",
+          emerald: "#1F7A5C",
+          "emerald-hover": "#18634B",
+          "emerald-tint": "#DCEBE3",
+          "emerald-border": "#C2DDD0",
+          vermillion: "#EE6A4B",
+          "vermillion-hover": "#D95A3D",
+          "vermillion-tint": "#FDF1EE",
+          border: "#E5DFD3",
+          secondary: "#7A7468",
+          success: "#1F7A5C",
+          "success-tint": "#DCEBE3",
+          warning: "#F5A623",
+          "warning-tint": "#FEF7EE",
+          error: "#D9381E",
+          "error-tint": "#FDF0ED",
+          amber: "#F5A623",
+        },
+        studio: {
+          primary: "#1F7A5C",
+          "primary-hover": "#18634B",
+          emerald: "#1F7A5C",
+          "emerald-hover": "#18634B",
+          vermillion: "#EE6A4B",
+          "vermillion-hover": "#D95A3D",
+          ink: "#2B2B2B",
+          bg: "#F7F3E8",
+          surface: "#FFFFFF",
+          text: "#2B2B2B",
+          border: "#E5DFD3",
+          secondary: "#7A7468",
+          muted: "#7A7468",
+          success: "#1F7A5C",
+          "success-tint": "#DCEBE3",
+          warning: "#F5A623",
+          "warning-tint": "#FEF7EE",
+          error: "#D9381E",
+          "error-tint": "#FDF0ED",
+          amber: "#F5A623",
+          violet: "#1F7A5C",
+          obsidian: "#2B2B2B",
+        },
+      },
+      fontFamily: {
+        serif: ["Newsreader", "Lora", "Georgia", "Cambria", "serif"],
+        sans: ["Plus Jakarta Sans", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+      },
+      boxShadow: {
+        soft: "0 4px 20px -2px rgba(43,43,43,0.06), 0 2px 6px -1px rgba(43,43,43,0.04)",
+        "soft-lg": "0 10px 30px -4px rgba(43,43,43,0.08), 0 4px 10px -2px rgba(43,43,43,0.04)",
+      },
+    },
+  },
+  plugins: [],
+}
