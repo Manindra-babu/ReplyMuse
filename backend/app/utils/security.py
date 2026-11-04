@@ -69,5 +69,5 @@ def decode_access_token(token: str) -> Optional[dict]:
         return None
 
 
-def generate_secure_token() -> str:
-    return secrets.token_urlsafe(32)
+def generate_secure_token(nbytes: int = 32) -> str:
+    return secrets.token_urlsafe(nbytes)
