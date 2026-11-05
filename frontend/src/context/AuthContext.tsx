@@ -52,8 +52,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await authApi.logout();
-    setUser(null);
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore network errors on logout
+    } finally {
+      localStorage.removeItem('replymuse_token');
+      try {
+        if ((window as any).google?.accounts?.id?.disableAutoSelect) {
+          (window as any).google.accounts.id.disableAutoSelect();
+        }
+      } catch {
+        // Safe fallback
+      }
+      setUser(null);
+    }
   };
 
   return (

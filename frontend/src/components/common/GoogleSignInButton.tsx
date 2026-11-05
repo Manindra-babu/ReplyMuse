@@ -23,6 +23,7 @@ declare global {
               width?: number | string;
             }
           ) => void;
+          disableAutoSelect: () => void;
           prompt?: () => void;
         };
       };
@@ -71,7 +72,17 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
             errorRef.current(new Error('No credential returned from Google.'));
           }
         },
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
+
+      // Disable Google Auto-Select so the button always renders neutrally as "Continue with Google"
+      // instead of locking to or displaying a previously logged-in personal Google profile.
+      try {
+        window.google.accounts.id.disableAutoSelect();
+      } catch {
+        // Safe fallback
+      }
 
       buttonRef.current.innerHTML = '';
       window.google.accounts.id.renderButton(buttonRef.current, {
