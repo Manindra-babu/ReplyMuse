@@ -28,8 +28,9 @@ class GeminiAIProvider(BaseAIProvider):
     """
 
     def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
-        self.api_key = api_key or settings.GEMINI_API_KEY
-        self.model = model or settings.GEMINI_MODEL
+        raw_key = api_key or settings.GEMINI_API_KEY or ""
+        self.api_key = raw_key.strip().strip('"').strip("'")
+        self.model = (model or settings.GEMINI_MODEL or "gemini-1.5-flash").strip()
         self.timeout = float(settings.AI_TIMEOUT_SECONDS)
         self.fallback_provider = MockAIProvider()
 
@@ -77,12 +78,29 @@ class GeminiAIProvider(BaseAIProvider):
                 response.raise_for_status()
                 data = response.json()
             except httpx.HTTPStatusError as http_err:
+                logger.error(
+                    f"Gemini API returned HTTP {http_err.response.status_code}: {http_err.response.text}"
+                )
                 # If 400 Bad Request due to responseMimeType, try payload without responseMimeType
-                if http_err.response.status_code == 400:
+                if http_err.response.status_code == 400 and "responseMimeType" in payload.get("generationConfig", {}):
                     payload["generationConfig"].pop("responseMimeType", None)
                     response = await client.post(url, headers=headers, json=payload)
                     response.raise_for_status()
                     data = response.json()
+                elif http_err.response.status_code == 404:
+                    # Try alternative model versions if specific flash tag changed
+                    for alt_model in ["gemini-1.5-flash-latest", "gemini-2.0-flash"]:
+                        try:
+                            alt_url = f"https://generativelanguage.googleapis.com/v1beta/models/{alt_model}:generateContent?key={self.api_key}"
+                            response = await client.post(alt_url, headers=headers, json=payload)
+                            response.raise_for_status()
+                            data = response.json()
+                            self.model = alt_model
+                            break
+                        except Exception:
+                            continue
+                    else:
+                        raise http_err
                 else:
                     raise
 
@@ -131,11 +149,9 @@ class GeminiAIProvider(BaseAIProvider):
                 if attempt < settings.AI_MAX_RETRIES:
                     await asyncio.sleep(0.5 * (2 ** attempt))
                 else:
-                    if settings.ENVIRONMENT == "production":
-                        raise HTTPException(
-                            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                            detail="The AI style analyzer is temporarily delayed. Please try again shortly.",
-                        )
+                    logger.error(
+                        f"Gemini voice analysis exhausted retries: {e}. Gracefully falling back to built-in analyzer."
+                    )
                     return await self.fallback_provider.analyze_voice(
                         business_name, category, description, examples
                     )
@@ -209,11 +225,9 @@ class GeminiAIProvider(BaseAIProvider):
                 if attempt < settings.AI_MAX_RETRIES:
                     await asyncio.sleep(0.5 * (2 ** attempt))
                 else:
-                    if settings.ENVIRONMENT == "production":
-                        raise HTTPException(
-                            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                            detail="The AI generation service is temporarily unavailable. Please try again shortly.",
-                        )
+                    logger.error(
+                        f"Gemini generation exhausted retries: {e}. Gracefully falling back to built-in generation engine."
+                    )
                     return await self.fallback_provider.generate_reply(
                         business_name,
                         category,

@@ -1,4 +1,5 @@
 import uuid
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,8 +20,11 @@ from app.schemas.draft import (
 from app.api.deps import get_current_business
 from app.services.quota_service import QuotaService
 from app.services.ai.factory import get_ai_provider
+from app.services.ai.mock_provider import MockAIProvider
 from app.utils.rate_limit import generation_rate_limiter
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Drafts"])
 
@@ -88,10 +92,26 @@ async def regenerate_reply_draft(
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="The AI generation service is temporarily unavailable. Please try again shortly.",
-        )
+        logger.error(f"AI draft regeneration failed: {exc}. Attempting fallback.", exc_info=True)
+        try:
+            fallback = MockAIProvider()
+            gen_result = await fallback.generate_reply(
+                business_name=business.business_name,
+                category=business.category,
+                description=business.description,
+                contact_email=business.contact_email,
+                contact_phone=business.contact_phone,
+                voice_profile=voice_dict,
+                review_text=review.review_text,
+                star_rating=review.star_rating,
+                reviewer_name=review.reviewer_name,
+                language_override=data.language_override or review.response_language,
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="The AI generation service is temporarily unavailable. Please try again shortly.",
+            )
 
     # 4. Record quota only after successful AI generation
     await QuotaService.record_generation_quota(
