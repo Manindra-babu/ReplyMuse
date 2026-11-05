@@ -43,6 +43,7 @@ htmlcov/
 # Antigravity artifacts
 .gemini/
 
-# Hyperframes cache
-brag-output/composition/.hyperframes/
-brag-output/work/
+# Brag outputs (build directories kept local)
+brag-output/
+brag-output-*/
+

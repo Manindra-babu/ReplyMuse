@@ -1,6 +1,14 @@
 <div align="center">
 
-  <img src="brag-output/brag.jpg" alt="ReplyMuse Studio Preview" width="100%" style="border-radius: 16px; margin-bottom: 24px;" />
+  <video src="docs/assets/replymuse-demo.mp4" poster="docs/assets/replymuse-poster.jpg" width="100%" controls style="border-radius: 16px; margin-bottom: 16px;">
+    <a href="docs/assets/replymuse-demo.mp4">
+      <img src="docs/assets/replymuse-poster.jpg" alt="ReplyMuse Product Demo" width="100%" style="border-radius: 16px; margin-bottom: 16px;" />
+    </a>
+  </video>
+
+  <p align="center">
+    🎬 <em>Watch ReplyMuse handle a stinging 1-star review live in 3 seconds</em> • <strong><a href="docs/assets/replymuse-demo.mp4">Play Demo Video (MP4) »</a></strong>
+  </p>
 
   # ReplyMuse
   ### *Every reply, in your voice.*
@@ -30,7 +38,7 @@
     <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python" />
     <img src="https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwindcss&logoColor=white" alt="Tailwind" />
-    <img src="https://img.shields.io/badge/Tests-18%20Passed-1F7A5C?logo=pytest&logoColor=white" alt="Pytest" />
+    <img src="https://img.shields.io/badge/Tests-20%20Passed-1F7A5C?logo=pytest&logoColor=white" alt="Pytest" />
     <img src="https://img.shields.io/badge/License-MIT-blue" alt="License MIT" />
   </p>
 
