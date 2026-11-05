@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
-from sqlalchemy import DateTime, String, ForeignKey
+from sqlalchemy import DateTime, String, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base, GUID, get_utc_now
@@ -21,6 +21,8 @@ class Subscription(Base):
     )
     plan: Mapped[str] = mapped_column(String(50), default="free", nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="active", nullable=False)
+    bonus_credits: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    custom_monthly_limit: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     provider_customer_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     period_start: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=get_utc_now, nullable=False

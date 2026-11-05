@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { reviewsApi } from '../../services/reviews';
@@ -65,6 +66,7 @@ export const Navbar: React.FC = () => {
     { to: '/style', label: 'Your Style', icon: Sliders },
     { to: '/business', label: 'Business Profile', icon: Store },
     { to: '/settings', label: 'Settings', icon: SettingsIcon },
+    ...(user?.is_admin ? [{ to: '/admin', label: 'Admin Console', icon: ShieldCheck }] : []),
   ];
 
   const landingLinks = [

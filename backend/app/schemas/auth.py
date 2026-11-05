@@ -36,6 +36,7 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: EmailStr
     is_active: bool
+    is_admin: bool = False
     email_verified: bool
     created_at: datetime
     has_business_profile: bool = False

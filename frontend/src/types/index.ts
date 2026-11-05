@@ -2,6 +2,7 @@ export interface User {
   id: string;
   email: string;
   is_active: boolean;
+  is_admin?: boolean;
   email_verified: boolean;
   created_at: string;
   has_business_profile: boolean;
@@ -100,9 +101,43 @@ export interface PaginatedHistory {
 export interface UsageQuota {
   plan: string;
   monthly_limit: number;
+  bonus_credits?: number;
+  total_allowance?: number;
   used: number;
   remaining: number;
   period_start: string;
   reset_date: string;
   is_quota_exhausted: boolean;
+}
+
+export interface AdminMetrics {
+  total_users: number;
+  active_users: number;
+  total_businesses: number;
+  total_generations_month: number;
+  total_generations_all_time: number;
+  plan_distribution: Record<string, number>;
+}
+
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  is_active: boolean;
+  is_admin: boolean;
+  created_at: string;
+  business_name?: string | null;
+  category?: string | null;
+  plan: string;
+  monthly_limit: number;
+  bonus_credits: number;
+  used_month: number;
+  remaining: number;
+}
+
+export interface AdminUserListResponse {
+  items: AdminUserListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }

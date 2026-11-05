@@ -29,7 +29,20 @@ class QuotaService:
     async def get_usage_summary(session: AsyncSession, user_id: uuid.UUID) -> Dict[str, Any]:
         """Returns the user's monthly generation limit, count used, count remaining, and reset date."""
         period_start, period_end = QuotaService.get_current_billing_period()
-        limit = settings.MONTHLY_FREE_GENERATION_LIMIT
+
+        # Retrieve user subscription for dynamic tier and bonus credits
+        from app.models.subscription import Subscription
+        stmt_sub = select(Subscription).where(Subscription.user_id == user_id)
+        sub = (await session.execute(stmt_sub)).scalar_one_or_none()
+
+        plan_name = sub.plan if sub else "free"
+        base_limit = (
+            sub.custom_monthly_limit
+            if (sub and sub.custom_monthly_limit is not None)
+            else settings.PLAN_LIMITS.get(plan_name, settings.MONTHLY_FREE_GENERATION_LIMIT)
+        )
+        bonus_credits = sub.bonus_credits if sub else 0
+        total_allowance = base_limit + bonus_credits
 
         stmt = (
             select(func.coalesce(func.sum(UsageEvent.quantity), 0))
@@ -42,11 +55,13 @@ class QuotaService:
         )
         result = await session.execute(stmt)
         used = int(result.scalar() or 0)
-        remaining = max(0, limit - used)
+        remaining = max(0, total_allowance - used)
 
         return {
-            "plan": "free",
-            "monthly_limit": limit,
+            "plan": plan_name,
+            "monthly_limit": base_limit,
+            "bonus_credits": bonus_credits,
+            "total_allowance": total_allowance,
             "used": used,
             "remaining": remaining,
             "period_start": period_start.isoformat(),

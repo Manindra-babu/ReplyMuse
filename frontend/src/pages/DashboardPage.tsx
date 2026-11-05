@@ -26,6 +26,7 @@ export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { copied, copy } = useClipboard();
   const [expandedDrafts, setExpandedDrafts] = useState<Record<string, boolean>>({});
+  const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
 
   const toggleDraftExpand = (id: string) => {
     setExpandedDrafts((prev) => ({
@@ -110,10 +111,10 @@ export const DashboardPage: React.FC = () => {
         <div className="bg-white border border-[#E5DFD3] rounded-3xl p-6 shadow-soft flex flex-col justify-between h-full space-y-4">
           <div className="flex items-center justify-between min-h-[28px]">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#7A7468]">
-              Monthly Free Quota
+              Monthly Credit Quota
             </span>
-            <span className="text-xs font-sans text-[#2B2B2B] font-semibold bg-[#FAF8F5] border border-[#E5DFD3] px-2.5 py-0.5 rounded-full">
-              Free Starter
+            <span className="text-xs font-sans text-[#2B2B2B] font-semibold bg-[#FAF8F5] border border-[#E5DFD3] px-2.5 py-0.5 rounded-full capitalize">
+              {usage?.plan || 'Free'} Plan
             </span>
           </div>
 
@@ -122,7 +123,7 @@ export const DashboardPage: React.FC = () => {
               <span className="text-2xl font-serif font-bold text-[#2B2B2B]">
                 {usage?.used ?? 0}
                 <span className="text-xs text-[#7A7468] font-sans font-normal ml-1">
-                  / {usage?.monthly_limit ?? 10} used
+                  / {(usage?.monthly_limit ?? 10) + (usage?.bonus_credits ?? 0)} total
                 </span>
               </span>
               <span className="text-xs font-semibold text-[#1F7A5C]">
@@ -137,24 +138,38 @@ export const DashboardPage: React.FC = () => {
                 style={{
                   width: `${Math.min(
                     100,
-                    (((usage?.used ?? 0) / (usage?.monthly_limit ?? 10)) * 100)
+                    (((usage?.used ?? 0) / Math.max(1, (usage?.monthly_limit ?? 10) + (usage?.bonus_credits ?? 0))) * 100)
                   )}%`,
                 }}
               />
             </div>
+
+            {(usage?.bonus_credits ?? 0) > 0 && (
+              <span className="text-[11px] font-semibold text-[#1F7A5C]">
+                Includes +{usage?.bonus_credits} bonus credits
+              </span>
+            )}
           </div>
 
-          <p className="text-[11px] text-[#7A7468] font-sans pt-1">
-            Quota resets on{' '}
-            <strong className="text-[#2B2B2B]">
-              {usage?.reset_date
-                ? new Date(usage.reset_date).toLocaleDateString('en-IN', {
-                    month: 'short',
-                    day: 'numeric',
-                  })
-                : 'next billing cycle'}
-            </strong>
-          </p>
+          <div className="pt-1 flex items-center justify-between border-t border-[#E5DFD3]/60">
+            <p className="text-[11px] text-[#7A7468] font-sans">
+              Resets on{' '}
+              <strong className="text-[#2B2B2B]">
+                {usage?.reset_date
+                  ? new Date(usage.reset_date).toLocaleDateString('en-IN', {
+                      month: 'short',
+                      day: 'numeric',
+                    })
+                  : 'next cycle'}
+              </strong>
+            </p>
+            <button
+              onClick={() => setShowUpgradeModal(true)}
+              className="text-[11px] font-semibold text-[#EE6A4B] hover:text-[#EE6A4B]/80 hover:underline"
+            >
+              Need more? →
+            </button>
+          </div>
         </div>
 
         {/* Card 2: Business Voice Summary */}
@@ -316,6 +331,79 @@ export const DashboardPage: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Upgrade / More Credits Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-white border border-[#E5DFD3] rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-soft space-y-6 animate-in fade-in zoom-in-95 duration-150">
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#EE6A4B]">
+                Upgrade Your Studio
+              </span>
+              <h3 className="font-serif text-2xl font-bold text-[#2B2B2B] mt-1">
+                Choose the Right Tier for Your Business
+              </h3>
+              <p className="text-xs text-[#7A7468] mt-1">
+                Need more replies to handle peak seasonal reviews? Select a plan or contact support for customized allowances.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-2xl border border-[#E5DFD3] bg-[#FAF8F5] flex flex-col justify-between">
+                <div>
+                  <span className="text-xs font-bold text-[#2B2B2B]">Free Starter</span>
+                  <div className="font-serif text-xl font-bold text-[#2B2B2B] mt-1">₹0</div>
+                  <p className="text-[11px] text-[#7A7468] mt-1">10 replies / mo</p>
+                </div>
+                <span className="text-[10px] bg-white border border-[#E5DFD3] px-2 py-0.5 rounded-full font-semibold text-center mt-3">
+                  Current
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl border-2 border-[#1F7A5C] bg-[#DCEBE3]/20 flex flex-col justify-between relative shadow-xs">
+                <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#1F7A5C] text-white text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  Popular
+                </span>
+                <div>
+                  <span className="text-xs font-bold text-[#1F7A5C]">Growth Studio</span>
+                  <div className="font-serif text-xl font-bold text-[#2B2B2B] mt-1">₹1,499<span className="text-xs text-[#7A7468] font-sans font-normal">/mo</span></div>
+                  <p className="text-[11px] text-[#7A7468] mt-1">100 replies / mo</p>
+                </div>
+                <a
+                  href="mailto:care@replymuse.com?subject=Upgrade%20to%20Growth%20Studio"
+                  className="text-[11px] bg-[#1F7A5C] text-white text-center py-1 rounded-xl font-semibold mt-3 hover:bg-[#1F7A5C]/90"
+                >
+                  Upgrade
+                </a>
+              </div>
+
+              <div className="p-4 rounded-2xl border border-[#E5DFD3] bg-[#FAF8F5] flex flex-col justify-between">
+                <div>
+                  <span className="text-xs font-bold text-[#2B2B2B]">Pro Studio</span>
+                  <div className="font-serif text-xl font-bold text-[#2B2B2B] mt-1">₹3,499<span className="text-xs text-[#7A7468] font-sans font-normal">/mo</span></div>
+                  <p className="text-[11px] text-[#7A7468] mt-1">500 replies / mo</p>
+                </div>
+                <a
+                  href="mailto:care@replymuse.com?subject=Upgrade%20to%20Pro%20Studio"
+                  className="text-[11px] bg-white border border-[#E5DFD3] text-[#2B2B2B] text-center py-1 rounded-xl font-semibold mt-3 hover:border-[#1F7A5C]"
+                >
+                  Contact
+                </a>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-[#FEF7EE] border border-[#F9DBAF] rounded-2xl text-[11px] text-[#2B2B2B]">
+              <strong className="text-[#D97706] font-semibold">Special Offer:</strong> Need a quick temporary boost? Email our team or message founder support and receive <strong>+25 bonus credits</strong> instantly!
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button variant="secondary" onClick={() => setShowUpgradeModal(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

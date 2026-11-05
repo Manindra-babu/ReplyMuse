@@ -16,6 +16,7 @@ from app.api.drafts import router as drafts_router
 from app.api.history import router as history_router
 from app.api.usage import router as usage_router
 from app.api.account import router as account_router
+from app.api.admin import router as admin_router
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -33,6 +34,12 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database schemas...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Ensure new columns exist on existing databases
+        if "postgresql" in str(conn.engine.url):
+            from sqlalchemy import text
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT FALSE;"))
+            await conn.execute(text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS bonus_credits INTEGER NOT NULL DEFAULT 0;"))
+            await conn.execute(text("ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS custom_monthly_limit INTEGER NULL;"))
     logger.info("ReplyMuse backend initialized successfully.")
     yield
     # Shutdown
@@ -105,6 +112,7 @@ app.include_router(drafts_router, prefix=settings.API_V1_STR)
 app.include_router(history_router, prefix=settings.API_V1_STR)
 app.include_router(usage_router, prefix=settings.API_V1_STR)
 app.include_router(account_router, prefix=settings.API_V1_STR)
+app.include_router(admin_router, prefix=settings.API_V1_STR)
 
 
 @app.exception_handler(StarletteHTTPException)

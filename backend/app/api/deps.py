@@ -77,6 +77,28 @@ async def get_current_user(
     return user
 
 
+async def get_current_admin(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> User:
+    admin_emails = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
+    is_admin = bool(user.is_admin or (user.email and user.email.lower() in admin_emails))
+
+    if not is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. Platform administrator credentials required.",
+        )
+
+    # Sync is_admin in db if designated by email configuration
+    if not user.is_admin:
+        user.is_admin = True
+        await session.commit()
+        await session.refresh(user)
+
+    return user
+
+
 async def get_current_business(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),

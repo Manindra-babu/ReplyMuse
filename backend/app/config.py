@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     COOKIE_SAMESITE: str = "lax"
     GOOGLE_CLIENT_ID: str = ""
+    ADMIN_EMAILS: str = "manindrachowdhary1715@gmail.com,wereal069@gmail.com"
 
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./replymuse.db"
@@ -32,8 +33,13 @@ class Settings(BaseSettings):
     AI_TIMEOUT_SECONDS: int = 30
     AI_MAX_RETRIES: int = 2
 
-    # Usage Quotas
+    # Usage Quotas & Plans
     MONTHLY_FREE_GENERATION_LIMIT: int = 10
+    PLAN_LIMITS: dict = {
+        "free": 10,
+        "growth": 100,
+        "pro": 500,
+    }
 
     # CORS
     BACKEND_CORS_ORIGINS: Union[List[str], str] = [

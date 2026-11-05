@@ -38,10 +38,14 @@ def build_user_response(user: User) -> UserResponse:
     if has_business and user.business_profile.voice_profile is not None:
         has_voice = True
 
+    admin_emails = [e.strip().lower() for e in settings.ADMIN_EMAILS.split(",") if e.strip()]
+    is_admin = bool(user.is_admin or (user.email and user.email.lower() in admin_emails))
+
     return UserResponse(
         id=user.id,
         email=user.email,
         is_active=user.is_active,
+        is_admin=is_admin,
         email_verified=user.email_verified_at is not None,
         created_at=user.created_at,
         has_business_profile=has_business,
