@@ -23,7 +23,17 @@ export const VoiceProfilePage: React.FC = () => {
     queryFn: () => voiceApi.getExamples(),
   });
 
-  const [formState, setFormState] = useState<Partial<VoiceProfile>>({});
+  const [formState, setFormState] = useState<Partial<VoiceProfile>>({
+    tone: 'Friendly, warm, and authentic',
+    formality: 'Polished & friendly',
+    first_person_style: 'we',
+    preferred_length: 'Balanced (2-4 sentences)',
+    greeting: 'Hi [Name],',
+    sign_off: 'Warmly, The Team',
+    preferred_phrases: [],
+    avoided_phrases: [],
+    language_preference: 'en',
+  });
   const [newExample, setNewExample] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -31,7 +41,11 @@ export const VoiceProfilePage: React.FC = () => {
   // Sync state once data loaded
   React.useEffect(() => {
     if (voiceProfile) {
-      setFormState(voiceProfile);
+      setFormState((prev) => ({
+        ...prev,
+        ...voiceProfile,
+        preferred_length: voiceProfile.preferred_length || prev.preferred_length || 'Balanced (2-4 sentences)',
+      }));
     }
   }, [voiceProfile]);
 
@@ -39,7 +53,19 @@ export const VoiceProfilePage: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await voiceApi.updateProfile(formState);
+      const payload = {
+        ...formState,
+        tone: formState.tone || 'Friendly, warm, and authentic',
+        formality: formState.formality || 'Polished & friendly',
+        first_person_style: formState.first_person_style || 'we',
+        preferred_length: formState.preferred_length || 'Balanced (2-4 sentences)',
+        greeting: formState.greeting || null,
+        sign_off: formState.sign_off || null,
+        preferred_phrases: formState.preferred_phrases || [],
+        avoided_phrases: formState.avoided_phrases || [],
+        language_preference: formState.language_preference || 'en',
+      };
+      await voiceApi.updateProfile(payload);
       queryClient.invalidateQueries({ queryKey: ['voiceProfile'] });
       success('Voice profile settings saved successfully.');
     } catch (err: any) {
@@ -125,7 +151,7 @@ export const VoiceProfilePage: React.FC = () => {
       {/* Voice Configuration Form */}
       <div className="bg-white border border-[#E5DFD3] rounded-3xl p-6 sm:p-8 shadow-soft">
         <form onSubmit={handleSaveProfile} className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input
               label="Tone Description"
               value={formState.tone || ''}
@@ -143,6 +169,17 @@ export const VoiceProfilePage: React.FC = () => {
                 { value: 'Polished & friendly', label: 'Polished & friendly' },
                 { value: 'Professional & structured', label: 'Professional & structured' },
                 { value: 'Formal & dignified', label: 'Formal & dignified' },
+              ]}
+            />
+
+            <Select
+              label="Response Length"
+              value={formState.preferred_length || 'Balanced (2-4 sentences)'}
+              onChange={(e) => setFormState({ ...formState, preferred_length: e.target.value })}
+              options={[
+                { value: 'Concise (1-2 sentences)', label: 'Concise (1-2 sentences)' },
+                { value: 'Balanced (2-4 sentences)', label: 'Balanced (2-4 sentences)' },
+                { value: 'Detailed (4-6 sentences)', label: 'Detailed (4-6 sentences)' },
               ]}
             />
           </div>

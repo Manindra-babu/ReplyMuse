@@ -2,12 +2,15 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db, get_utc_now
 from app.models.user import User
 from app.models.subscription import Subscription
+from app.models.business import BusinessProfile
+from app.models.voice import VoiceProfile
 from app.schemas.auth import (
     RegisterRequest,
     LoginRequest,
@@ -217,8 +220,37 @@ async def google_auth(
             period_start=get_utc_now(),
         )
         session.add(sub)
+
+        # Auto-provision starter business profile & voice profile
+        biz = BusinessProfile(
+            id=uuid.uuid4(),
+            user_id=user.id,
+            business_name="My Business",
+            category="Local Business",
+            description="Providing exceptional quality and memorable customer experiences.",
+            preferred_greeting="Hi [Name],",
+            preferred_sign_off="Warmly, The Team",
+            contact_email=email_clean,
+            default_language="en",
+        )
+        session.add(biz)
+        await session.flush()
+
+        voice = VoiceProfile(
+            id=uuid.uuid4(),
+            business_id=biz.id,
+            tone="Friendly, warm, and authentic",
+            formality="Polished & friendly",
+            preferred_length="Balanced (2-4 sentences)",
+            greeting="Hi [Name],",
+            sign_off="Warmly, The Team",
+            preferred_phrases=[],
+            avoided_phrases=[],
+            first_person_style="we",
+            language_preference="en",
+        )
+        session.add(voice)
         await session.commit()
-        await session.refresh(user)
     else:
         if not user.is_active:
             raise HTTPException(
@@ -229,7 +261,50 @@ async def google_auth(
         if not user.email_verified_at:
             user.email_verified_at = get_utc_now()
             await session.commit()
-            await session.refresh(user)
+
+        # Ensure existing user has business & voice profiles provisioned
+        stmt_biz = select(BusinessProfile).where(BusinessProfile.user_id == user.id)
+        existing_biz = (await session.execute(stmt_biz)).scalar_one_or_none()
+        if not existing_biz:
+            biz = BusinessProfile(
+                id=uuid.uuid4(),
+                user_id=user.id,
+                business_name="My Business",
+                category="Local Business",
+                description="Providing exceptional quality and memorable customer experiences.",
+                preferred_greeting="Hi [Name],",
+                preferred_sign_off="Warmly, The Team",
+                contact_email=email_clean,
+                default_language="en",
+            )
+            session.add(biz)
+            await session.flush()
+
+            voice = VoiceProfile(
+                id=uuid.uuid4(),
+                business_id=biz.id,
+                tone="Friendly, warm, and authentic",
+                formality="Polished & friendly",
+                preferred_length="Balanced (2-4 sentences)",
+                greeting="Hi [Name],",
+                sign_off="Warmly, The Team",
+                preferred_phrases=[],
+                avoided_phrases=[],
+                first_person_style="we",
+                language_preference="en",
+            )
+            session.add(voice)
+            await session.commit()
+
+    # Load user with business & voice profile relations
+    stmt_user = (
+        select(User)
+        .options(
+            selectinload(User.business_profile).selectinload(BusinessProfile.voice_profile)
+        )
+        .where(User.id == user.id)
+    )
+    user = (await session.execute(stmt_user)).scalar_one()
 
     # Issue access token
     token = create_access_token(str(user.id))

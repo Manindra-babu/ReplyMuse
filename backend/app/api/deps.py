@@ -10,6 +10,7 @@ from app.config import settings
 from app.database import get_db
 from app.models.user import User
 from app.models.business import BusinessProfile
+from app.models.voice import VoiceProfile
 from app.utils.security import decode_access_token
 
 security_scheme = HTTPBearer(auto_error=False)
@@ -92,8 +93,47 @@ async def get_current_business(
     business = result.scalar_one_or_none()
 
     if not business:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Business profile has not been set up. Please complete onboarding.",
+        # Gracefully auto-provision default business & voice profiles for seamless UX
+        business = BusinessProfile(
+            id=uuid.uuid4(),
+            user_id=user.id,
+            business_name="My Business",
+            category="Local Business",
+            description="Providing exceptional quality and memorable customer experiences.",
+            preferred_greeting="Hi [Name],",
+            preferred_sign_off="Warmly, The Team",
+            contact_email=user.email,
+            default_language="en",
         )
+        session.add(business)
+        await session.flush()
+
+        voice = VoiceProfile(
+            id=uuid.uuid4(),
+            business_id=business.id,
+            tone="Friendly, warm, and authentic",
+            formality="Polished & friendly",
+            preferred_length="Balanced (2-4 sentences)",
+            greeting="Hi [Name],",
+            sign_off="Warmly, The Team",
+            preferred_phrases=[],
+            avoided_phrases=[],
+            first_person_style="we",
+            language_preference="en",
+        )
+        session.add(voice)
+        await session.commit()
+
+        # Reload with selectinload options
+        stmt = (
+            select(BusinessProfile)
+            .options(
+                selectinload(BusinessProfile.voice_profile),
+                selectinload(BusinessProfile.voice_examples),
+            )
+            .where(BusinessProfile.id == business.id)
+        )
+        result = await session.execute(stmt)
+        business = result.scalar_one()
+
     return business

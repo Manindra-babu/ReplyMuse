@@ -30,10 +30,22 @@ async def get_voice_profile(
     stmt = select(VoiceProfile).where(VoiceProfile.business_id == business.id)
     profile = (await session.execute(stmt)).scalar_one_or_none()
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Voice profile not found. Complete onboarding or analyze past replies.",
+        profile = VoiceProfile(
+            id=uuid.uuid4(),
+            business_id=business.id,
+            tone="Friendly, warm, and authentic",
+            formality="Polished & friendly",
+            preferred_length="Balanced (2-4 sentences)",
+            greeting=business.preferred_greeting or "Hi [Name],",
+            sign_off=business.preferred_sign_off or "Warmly, The Team",
+            preferred_phrases=[],
+            avoided_phrases=[],
+            first_person_style="we",
+            language_preference="en",
         )
+        session.add(profile)
+        await session.commit()
+        await session.refresh(profile)
     return profile
 
 
@@ -46,31 +58,41 @@ async def update_voice_profile(
     stmt = select(VoiceProfile).where(VoiceProfile.business_id == business.id)
     profile = (await session.execute(stmt)).scalar_one_or_none()
 
+    tone_val = (data.tone or "Friendly, warm, and authentic").strip()
+    formality_val = (data.formality or "Polished & friendly").strip()
+    length_val = (data.preferred_length or "Balanced (2-4 sentences)").strip()
+    greeting_val = data.greeting.strip() if data.greeting else None
+    sign_off_val = data.sign_off.strip() if data.sign_off else None
+    phrases_val = data.preferred_phrases if data.preferred_phrases is not None else []
+    avoided_val = data.avoided_phrases if data.avoided_phrases is not None else []
+    first_person_val = data.first_person_style or "we"
+    lang_val = data.language_preference or "en"
+
     if not profile:
         profile = VoiceProfile(
             id=uuid.uuid4(),
             business_id=business.id,
-            tone=data.tone.strip(),
-            formality=data.formality.strip(),
-            preferred_length=data.preferred_length.strip(),
-            greeting=data.greeting.strip() if data.greeting else None,
-            sign_off=data.sign_off.strip() if data.sign_off else None,
-            preferred_phrases=data.preferred_phrases,
-            avoided_phrases=data.avoided_phrases,
-            first_person_style=data.first_person_style,
-            language_preference=data.language_preference,
+            tone=tone_val,
+            formality=formality_val,
+            preferred_length=length_val,
+            greeting=greeting_val,
+            sign_off=sign_off_val,
+            preferred_phrases=phrases_val,
+            avoided_phrases=avoided_val,
+            first_person_style=first_person_val,
+            language_preference=lang_val,
         )
         session.add(profile)
     else:
-        profile.tone = data.tone.strip()
-        profile.formality = data.formality.strip()
-        profile.preferred_length = data.preferred_length.strip()
-        profile.greeting = data.greeting.strip() if data.greeting else None
-        profile.sign_off = data.sign_off.strip() if data.sign_off else None
-        profile.preferred_phrases = data.preferred_phrases
-        profile.avoided_phrases = data.avoided_phrases
-        profile.first_person_style = data.first_person_style
-        profile.language_preference = data.language_preference
+        profile.tone = tone_val
+        profile.formality = formality_val
+        profile.preferred_length = length_val
+        profile.greeting = greeting_val
+        profile.sign_off = sign_off_val
+        profile.preferred_phrases = phrases_val
+        profile.avoided_phrases = avoided_val
+        profile.first_person_style = first_person_val
+        profile.language_preference = lang_val
 
     await session.commit()
     await session.refresh(profile)

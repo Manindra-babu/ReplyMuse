@@ -19,9 +19,11 @@ import { EmptyState } from '../components/common/EmptyState';
 import { SparkleIcon } from '../components/common/SparkleIcon';
 import { GoogleIcon } from '../components/common/GoogleIcon';
 import { useClipboard } from '../hooks/useClipboard';
+import { useAuth } from '../context/AuthContext';
 import { HistoryItem } from '../types';
 
 export const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
   const { copied, copy } = useClipboard();
   const [expandedDrafts, setExpandedDrafts] = useState<Record<string, boolean>>({});
 
@@ -36,11 +38,13 @@ export const DashboardPage: React.FC = () => {
   const { data: business } = useQuery({
     queryKey: ['businessProfile'],
     queryFn: () => businessApi.getProfile().catch(() => null),
+    enabled: Boolean(user?.has_business_profile),
   });
 
   const { data: voiceProfile } = useQuery({
     queryKey: ['voiceProfile'],
     queryFn: () => voiceApi.getProfile().catch(() => null),
+    enabled: Boolean(user?.has_voice_profile),
   });
 
   const { data: usage } = useQuery({

@@ -48,6 +48,14 @@ export async function request<T>(
     if (typeof body === 'object' && body !== null) {
       if (typeof body.detail === 'string') {
         errorMsg = body.detail;
+      } else if (Array.isArray(body.detail)) {
+        errorMsg = body.detail
+          .map((err: any) => {
+            if (typeof err === 'string') return err;
+            if (err.msg) return `${err.loc ? err.loc.join('.') + ': ' : ''}${err.msg}`;
+            return JSON.stringify(err);
+          })
+          .join('; ');
       } else if (body.detail && typeof body.detail.message === 'string') {
         errorMsg = body.detail.message;
       } else if (body.message) {
