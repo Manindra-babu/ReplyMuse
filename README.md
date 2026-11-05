@@ -1,13 +1,11 @@
 <div align="center">
 
-  <video src="docs/assets/replymuse-demo.mp4" poster="docs/assets/replymuse-poster.jpg" width="100%" controls style="border-radius: 16px; margin-bottom: 16px;">
-    <a href="docs/assets/replymuse-demo.mp4">
-      <img src="docs/assets/replymuse-poster.jpg" alt="ReplyMuse Product Demo" width="100%" style="border-radius: 16px; margin-bottom: 16px;" />
-    </a>
-  </video>
+  <a href="https://github.com/Manindra-babu/ReplyMuse/raw/main/docs/assets/replymuse-demo.mp4">
+    <img src="docs/assets/replymuse-demo.gif" alt="ReplyMuse Interactive Product Demo" width="100%" style="border-radius: 16px; margin-bottom: 16px;" />
+  </a>
 
   <p align="center">
-    🎬 <em>Watch ReplyMuse handle a stinging 1-star review live in 3 seconds</em> • <strong><a href="docs/assets/replymuse-demo.mp4">Play Demo Video (MP4) »</a></strong>
+    🎬 <em>Watch ReplyMuse handle a stinging 1-star review live in 3 seconds</em> • <strong><a href="https://github.com/Manindra-babu/ReplyMuse/raw/main/docs/assets/replymuse-demo.mp4">Play Full HD Video with Audio (MP4) »</a></strong>
   </p>
 
   # ReplyMuse
